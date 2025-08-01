@@ -202,3 +202,4 @@ class WSSC_Admin {
         </div>
         <?php
     }
+}
