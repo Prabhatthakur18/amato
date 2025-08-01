@@ -1,0 +1,225 @@
+.wssc-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10000;}
+.wssc-box{background:#fff;padding:20px;border-radius:8px;width:300px;max-width:90vw;}
+.wssc-box input,.wssc-box textarea{width:100%;margin:8px 0;padding:6px;box-sizing:border-box;}
+
+/* Section Styling */
+.widget_shopping_cart .wssc-section {
+    margin: 20px 0 !important;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.widget_shopping_cart .wssc-section:last-child {
+    border-bottom: none !important;
+}
+
+.widget_shopping_cart .wssc-section-title {
+    margin: 0 0 15px 0 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    text-align: left !important;
+}
+
+/* Products Grid */
+.widget_shopping_cart .wssc-products-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+/* Product Card Styling */
+.widget_shopping_cart .wssc-product-card {
+    display: flex !important;
+    align-items: center !important;
+    background: #f8f9fa !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    position: relative !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid #e9ecef !important;
+    box-sizing: border-box !important;
+}
+
+.widget_shopping_cart .wssc-product-card:hover {
+    background: #f1f3f4 !important;
+    border-color: #ddd !important;
+}
+
+.widget_shopping_cart .wssc-product-image {
+    flex-shrink: 0 !important;
+    width: 60px !important;
+    height: 60px !important;
+    margin-right: 12px !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+}
+
+.widget_shopping_cart .wssc-product-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.widget_shopping_cart .wssc-product-info {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+}
+
+.widget_shopping_cart .wssc-product-name {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    line-height: 1.3 !important;
+    word-wrap: break-word !important;
+}
+
+.widget_shopping_cart .wssc-product-price {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    color: #666 !important;
+    font-weight: 500 !important;
+}
+
+.widget_shopping_cart .wssc-product-price .amount {
+    color: #2196F3 !important;
+    font-weight: 600 !important;
+}
+
+/* FIXED: Button centering */
+.widget_shopping_cart .wssc-product-actions {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-top: 8px !important;
+}
+
+.widget_shopping_cart .wssc-add-btn {
+    background: #000 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    text-decoration: none !important;
+    display: block !important;
+    text-align: center !important;
+    min-width: 70px !important;
+    margin: 0 auto !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+    line-height: 1.2 !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
+}
+
+.widget_shopping_cart .wssc-add-btn:hover,
+.widget_shopping_cart .wssc-add-btn:focus {
+    background: #333 !important;
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    text-decoration: none !important;
+}
+
+.widget_shopping_cart .wssc-add-btn:active {
+    transform: translateY(0) !important;
+}
+
+.widget_shopping_cart .wssc-add-btn.loading {
+    background: #666 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Quantity Badge */
+.widget_shopping_cart .wssc-qty-badge {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    background: #e53935 !important;
+    color: #fff !important;
+    padding: 4px 8px !important;
+    border-radius: 50% !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    z-index: 1 !important;
+}
+
+/* Bulk Button */
+.wssc-bulk-btn {
+    background: #FF6B35 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 10px 16px !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    margin-top: 10px !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    transition: background 0.3s !important;
+    box-sizing: border-box !important;
+}
+
+.wssc-bulk-btn:hover {
+    background: #e55a2b !important;
+    color: #fff !important;
+}
+
+/* Toast */
+.wssc-toast {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    background: #323232 !important;
+    color: #fff !important;
+    padding: 12px 20px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    opacity: 0.95 !important;
+    z-index: 9999 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    .widget_shopping_cart .wssc-product-card {
+        padding: 10px !important;
+    }
+    
+    .widget_shopping_cart .wssc-product-image {
+        width: 50px !important;
+        height: 50px !important;
+        margin-right: 10px !important;
+    }
+    
+    .widget_shopping_cart .wssc-add-btn {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        min-width: 60px !important;
+    }
+}
