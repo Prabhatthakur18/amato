@@ -87,6 +87,21 @@ class WSSC_SideCart {
             }
             echo '</div></div>';
         }
+
+        // Add single bulk button at the end if cart is not empty
+        if (!WC()->cart->is_empty()) {
+            $cart_product_ids = [];
+            foreach (WC()->cart->get_cart() as $cart_item) {
+                $cart_product_ids[] = $cart_item['product_id'];
+            }
+            
+            // Use the first product ID for the bulk request
+            $main_product_id = $cart_product_ids[0];
+            
+            echo '<div class="wssc-section">';
+            echo '<a href="#" class="button wssc-bulk-btn" data-product="' . esc_attr($main_product_id) . '">BUY BULK</a>';
+            echo '</div>';
+        }
     }
 
     private function render_product_card($product, $product_id) {
@@ -100,6 +115,7 @@ class WSSC_SideCart {
         echo '<div class="wssc-product-info">';
         echo '<h5 class="wssc-product-name">' . esc_html($name) . '</h5>';
         echo '<div class="wssc-product-price">' . $price . '</div>';
+        echo '</div>';
         echo '<div class="wssc-product-actions">';
         echo '<button type="button" class="wssc-add-btn" data-product-id="' . esc_attr($product_id) . '">+ ADD</button>';
         echo '</div>';
@@ -108,21 +124,12 @@ class WSSC_SideCart {
             echo '<span class="wssc-qty-badge">' . esc_html($qty) . '</span>';
         }
         
-        echo '</div></div>';
+        echo '</div>';
     }
 
     public function add_bulk_button() {
-        if (!WC()->cart->is_empty()) {
-            $cart_product_ids = [];
-            foreach (WC()->cart->get_cart() as $cart_item) {
-                $cart_product_ids[] = $cart_item['product_id'];
-            }
-            
-            // Use the first product ID for the bulk request
-            $main_product_id = $cart_product_ids[0];
-            
-            echo '<a href="#" class="button wssc-bulk-btn" data-product="' . esc_attr($main_product_id) . '">Buy Bulk</a>';
-        }
+        // Remove this method's functionality to prevent duplicate bulk buttons
+        // The bulk button will only be added through the render_sections method
     }
 
     private function get_cart_quantity($product_id) {

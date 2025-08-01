@@ -176,11 +176,11 @@
 
 /* Product Actions - Button centering */
 .widget_shopping_cart .wssc-product-actions {
-    width: 100% !important;
     display: flex !important;
-    justify-content: center !important;
+    justify-content: flex-end !important;
     align-items: center !important;
-    margin-top: 8px !important;
+    flex-shrink: 0 !important;
+    margin-left: 12px !important;
 }
 
 .widget_shopping_cart .wssc-add-btn {
@@ -199,7 +199,6 @@
     display: block !important;
     text-align: center !important;
     min-width: 70px !important;
-    margin: 0 auto !important;
     outline: none !important;
     box-shadow: none !important;
     font-family: inherit !important;
