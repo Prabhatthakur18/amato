@@ -1,147 +1,160 @@
 jQuery(document).ready(function($) {
-    // Auto-hide toast notifications
-    $('.wssc-admin-toast').each(function() {
-        const toast = $(this);
-        
-        // Auto-hide after 4 seconds
-        setTimeout(function() {
-            toast.fadeOut(400, function() {
-                toast.remove();
-            });
-        }, 4000);
-        
-        // Allow manual close on click
-        toast.on('click', function() {
-            toast.fadeOut(300, function() {
-                toast.remove();
-            });
-        });
-    });
-
-    // File input enhancement
-    $('.file-input').on('change', function() {
-        const fileName = $(this)[0].files[0]?.name;
-        const fileText = $(this).siblings('.file-label').find('.file-text');
-        
-        if (fileName) {
-            fileText.text(fileName);
-            $(this).siblings('.file-label').css({
-                'background': '#e7f3ff',
-                'border-color': '#0073aa',
-                'color': '#0073aa'
-            });
-        } else {
-            fileText.text('Choose CSV File');
-            $(this).siblings('.file-label').css({
-                'background': '#f6f7f7',
-                'border-color': '#c3c4c7',
-                'color': 'inherit'
-            });
-        }
-    });
-
-    // Form submission loading state
-    $('.wssc-upload-form').on('submit', function() {
-        const submitBtn = $(this).find('button[type="submit"]');
-        const originalText = submitBtn.html();
-        
-        submitBtn.prop('disabled', true)
-               .html('<span class="upload-icon">⏳</span> Uploading...');
-        
-        // Re-enable if form doesn't submit for some reason
-        setTimeout(function() {
-            submitBtn.prop('disabled', false).html(originalText);
-        }, 10000);
-    });
-
-    // Edit Status Button
-    $('.edit-status-btn').on('click', function() {
-        var requestId = $(this).data('id');
-        var currentStatus = $(this).closest('tr').find('.status-badge').text().toLowerCase().trim();
-        
-        $('#edit-request-id').val(requestId);
-        $('#status-select').val(currentStatus);
-        $('#status-edit-modal').show();
-    });
-
-    // Cancel Edit
-    $('.cancel-edit').on('click', function() {
-        $('#status-edit-modal').hide();
-    });
-
-    // Submit Status Update
-    $('#status-edit-form').on('submit', function(e) {
+    // Add to cart functionality
+    $(document).on('click', '.wssc-add-btn', function(e) {
         e.preventDefault();
         
-        var requestId = $('#edit-request-id').val();
-        var newStatus = $('#status-select').val();
+        var button = $(this);
+        var productId = button.data('product-id');
+        var originalText = button.html();
+        
+        // Disable button and show loading
+        button.prop('disabled', true).html('Adding...');
         
         $.ajax({
-            url: wsscAdmin.ajax_url,
+            url: wsscAjax.url,
             type: 'POST',
             data: {
-                action: 'wssc_update_request_status',
-                id: requestId,
-                status: newStatus,
-                _ajax_nonce: wsscAdmin.nonce
+                action: 'wssc_add_to_cart',
+                product_id: productId,
+                quantity: 1,
+                nonce: wsscAjax.nonce
             },
             success: function(response) {
                 if (response.success) {
-                    // Update the status badge in the table
-                    var row = $('tr[data-id="' + requestId + '"]');
-                    var statusBadge = row.find('.status-badge');
-                    statusBadge.removeClass('status-pending status-done')
-                              .addClass('status-' + newStatus)
-                              .text(newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
+                    // Update cart count
+                    $('.cart-contents-count').text(response.data.cart_count);
                     
-                    $('#status-edit-modal').hide();
-                    showAdminToast('✅ Status updated successfully!', 'success');
+                    // Update quantity badge
+                    var card = button.closest('.wssc-product-card');
+                    var badge = card.find('.wssc-qty-badge');
+                    var currentQty = badge.length ? parseInt(badge.text()) : 0;
+                    var newQty = currentQty + 1;
+                    
+                    if (badge.length) {
+                        badge.text(newQty);
+                    } else {
+                        card.append('<span class="wssc-qty-badge">' + newQty + '</span>');
+                    }
+                    
+                    // Show success message
+                    showToast('✅ Product added to cart!', 'success');
+                    
+                    // Trigger cart update
+                    $(document.body).trigger('wc_fragment_refresh');
                 } else {
-                    showAdminToast('❌ Failed to update status', 'error');
+                    showToast('❌ Failed to add product', 'error');
                 }
             },
             error: function() {
-                showAdminToast('❌ Error updating status', 'error');
+                showToast('❌ Error adding product', 'error');
+            },
+            complete: function() {
+                // Re-enable button
+                button.prop('disabled', false).html(originalText);
             }
         });
     });
 
-    // Delete Request
-    $('.delete-request-btn').on('click', function() {
-        if (!confirm('Are you sure you want to delete this request?')) {
-            return;
-        }
+    // Buy bulk button functionality
+    $(document).on('click', '.wssc-bulk-btn', function(e) {
+        e.preventDefault();
         
-        var requestId = $(this).data('id');
-        var row = $(this).closest('tr');
+        var productIds = $(this).data('product');
+        
+        // Create and show bulk form modal
+        var modal = createBulkModal(productIds);
+        $('body').append(modal);
+        $('#wssc-bulk-modal').show();
+    });
+
+    // Bulk form submission
+    $(document).on('submit', '#wssc-bulk-form', function(e) {
+        e.preventDefault();
+        
+        var formData = {
+            action: 'wssc_buy_bulk',
+            product_id: $('#bulk-product-id').val(),
+            name: $('#bulk-name').val(),
+            phone: $('#bulk-phone').val(),
+            email: $('#bulk-email').val(),
+            quantity: $('#bulk-quantity').val(),
+            message: $('#bulk-message').val(),
+            nonce: wsscAjax.nonce
+        };
+        
+        var submitBtn = $(this).find('button[type="submit"]');
+        var originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('Submitting...');
         
         $.ajax({
-            url: wsscAdmin.ajax_url,
+            url: wsscAjax.url,
             type: 'POST',
-            data: {
-                action: 'wssc_delete_request',
-                id: requestId,
-                _ajax_nonce: wsscAdmin.nonce
-            },
+            data: formData,
             success: function(response) {
                 if (response.success) {
-                    row.fadeOut(300, function() {
-                        row.remove();
-                    });
-                    showAdminToast('✅ Request deleted successfully!', 'success');
+                    showToast('✅ Bulk request submitted successfully!', 'success');
+                    $('#wssc-bulk-modal').remove();
                 } else {
-                   showAdminToast('❌ Failed to delete request', 'error');
+                    showToast('❌ Failed to submit request', 'error');
                 }
             },
             error: function() {
-                showAdminToast('❌ Error deleting request', 'error');
+                showToast('❌ Error submitting request', 'error');
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
             }
         });
     });
 
-    // Admin Toast Function
-    function showAdminToast(message, type) {
-        var toast = $('<div class="wssc-admin-toast ' + type + '">' + message + '</div>');
+    // Close modal functionality
+    $(document).on('click', '.wssc-modal', function(e) {
+        if (e.target === this) {
+            $(this).remove();
+        }
+    });
+    
+    $(document).on('click', '.wssc-close-modal', function() {
+        $(this).closest('.wssc-modal').remove();
+    });
+
+    // Create bulk modal function
+    function createBulkModal(productIds) {
+        return `
+            <div id="wssc-bulk-modal" class="wssc-modal" style="display: none;">
+                <div class="wssc-box">
+                    <h3>Bulk Purchase Request</h3>
+                    <form id="wssc-bulk-form">
+                        <input type="hidden" id="bulk-product-id" value="${productIds}">
+                        
+                        <label for="bulk-name">Name *</label>
+                        <input type="text" id="bulk-name" name="name" required>
+                        
+                        <label for="bulk-phone">Phone *</label>
+                        <input type="tel" id="bulk-phone" name="phone" required>
+                        
+                        <label for="bulk-email">Email</label>
+                        <input type="email" id="bulk-email" name="email">
+                        
+                        <label for="bulk-quantity">Quantity *</label>
+                        <input type="number" id="bulk-quantity" name="quantity" min="1" value="1" required>
+                        
+                        <label for="bulk-message">Message</label>
+                        <textarea id="bulk-message" name="message" rows="3" placeholder="Any special requirements..."></textarea>
+                        
+                        <div style="margin-top: 15px;">
+                            <button type="submit" class="button">Submit Request</button>
+                            <button type="button" class="button wssc-close-modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    // Toast notification function
+    function showToast(message, type) {
+        var toast = $('<div class="wssc-toast ' + (type || '') + '">' + message + '</div>');
         $('body').append(toast);
         
         setTimeout(function() {
@@ -157,10 +170,20 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Close modal when clicking outside
-    $(document).on('click', '.wssc-modal', function(e) {
-        if (e.target === this) {
-            $(this).hide();
-        }
+    // Auto-hide existing toast notifications
+    $('.wssc-admin-toast, .wssc-toast').each(function() {
+        const toast = $(this);
+        
+        setTimeout(function() {
+            toast.fadeOut(400, function() {
+                toast.remove();
+            });
+        }, 4000);
+        
+        toast.on('click', function() {
+            toast.fadeOut(300, function() {
+                toast.remove();
+            });
+        });
     });
 });

@@ -6,44 +6,57 @@ class WSSC_SideCart {
         add_action('woocommerce_widget_shopping_cart_after_buttons', [$this, 'render_sections']);
         add_action('woocommerce_widget_shopping_cart_buttons', [$this, 'add_bulk_button']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_action('wp_ajax_wssc_add_to_cart', [$this, 'ajax_add_to_cart']);
-        add_action('wp_ajax_nopriv_wssc_add_to_cart', [$this, 'ajax_add_to_cart']);
-        add_action('wp_ajax_wssc_remove_from_cart', [$this, 'remove_from_cart']);
-        add_action('wp_ajax_nopriv_wssc_remove_from_cart', [$this, 'remove_from_cart']);
     }
 
     public function enqueue_assets() {
-        wp_enqueue_script('wssc-js', WSSC_PLUGIN_URL . 'assets/js/wssc.js', ['jquery'], '1.0.1', true);
-        wp_localize_script('wssc-js', 'wsscAjax', [
-            'url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wssc_nonce')
-        ]);
+        // Only enqueue on pages where WooCommerce cart widget might be shown
+        if (is_woocommerce() || is_cart() || is_checkout() || is_shop() || is_product_category() || is_product_tag() || is_product()) {
+            wp_enqueue_script('wssc-js', WSSC_PLUGIN_URL . 'assets/js/wssc.js', ['jquery'], '1.0.2', true);
+            wp_localize_script('wssc-js', 'wsscAjax', [
+                'url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('wssc_nonce')
+            ]);
 
-        wp_enqueue_style('wssc-css', WSSC_PLUGIN_URL . 'assets/css/wssc.css', [], '1.0.1');
+            wp_enqueue_style('wssc-css', WSSC_PLUGIN_URL . 'assets/css/wssc.css', [], '1.0.2');
+        }
     }
 
     public function render_sections() {
+        // Only proceed if cart is not empty
+        if (WC()->cart->is_empty()) {
+            return;
+        }
+
         $all_recommended = [];
         $all_interested = [];
+        $cart_product_ids = [];
 
         // Collect all recommended and interested products from cart items
         foreach (WC()->cart->get_cart() as $cart_item) {
             $product_id = $cart_item['product_id'];
+            $cart_product_ids[] = $product_id;
             
             $recommended = get_post_meta($product_id, '_wssc_recommended', true);
             $interested = get_post_meta($product_id, '_wssc_interested', true);
 
             if ($recommended) {
-                $all_recommended = array_merge($all_recommended, explode(',', $recommended));
+                $recommended_ids = array_map('trim', explode(',', $recommended));
+                $all_recommended = array_merge($all_recommended, $recommended_ids);
             }
             if ($interested) {
-                $all_interested = array_merge($all_interested, explode(',', $interested));
+                $interested_ids = array_map('trim', explode(',', $interested));
+                $all_interested = array_merge($all_interested, $interested_ids);
             }
         }
 
-        // Remove duplicates and clean up
-        $all_recommended = array_unique(array_filter(array_map('trim', $all_recommended)));
-        $all_interested = array_unique(array_filter(array_map('trim', $all_interested)));
+        // Remove duplicates, empty values, and products already in cart
+        $all_recommended = array_unique(array_filter($all_recommended, function($id) use ($cart_product_ids) {
+            return !empty($id) && is_numeric($id) && !in_array(intval($id), $cart_product_ids);
+        }));
+        
+        $all_interested = array_unique(array_filter($all_interested, function($id) use ($cart_product_ids) {
+            return !empty($id) && is_numeric($id) && !in_array(intval($id), $cart_product_ids);
+        }));
 
         // Render "Ye Bhi Jaruri He" section
         if (!empty($all_recommended)) {
@@ -52,9 +65,9 @@ class WSSC_SideCart {
             echo '<div class="wssc-products-grid">';
             
             foreach ($all_recommended as $id) {
-                $prod = wc_get_product($id);
-                if ($prod && $prod->is_purchasable()) {
-                    $this->render_product_card($prod, $id);
+                $product = wc_get_product(intval($id));
+                if ($product && $product->is_purchasable() && $product->is_in_stock()) {
+                    $this->render_product_card($product, intval($id));
                 }
             }
             echo '</div></div>';
@@ -67,9 +80,9 @@ class WSSC_SideCart {
             echo '<div class="wssc-products-grid">';
             
             foreach ($all_interested as $id) {
-                $prod = wc_get_product($id);
-                if ($prod && $prod->is_purchasable()) {
-                    $this->render_product_card($prod, $id);
+                $product = wc_get_product(intval($id));
+                if ($product && $product->is_purchasable() && $product->is_in_stock()) {
+                    $this->render_product_card($product, intval($id));
                 }
             }
             echo '</div></div>';
@@ -105,27 +118,10 @@ class WSSC_SideCart {
                 $cart_product_ids[] = $cart_item['product_id'];
             }
             
-            echo '<a href="#" class="button wssc-bulk-btn" data-product="' . implode(',', $cart_product_ids) . '">Buy Bulk</a>';
-        }
-    }
-
-    public function ajax_add_to_cart() {
-        if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
-            wp_send_json_error('Invalid nonce');
-        }
-
-        $product_id = intval($_POST['product_id']);
-        $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
-
-        $result = WC()->cart->add_to_cart($product_id, $quantity);
-
-        if ($result) {
-            wp_send_json_success([
-                'message' => 'Product added to cart',
-                'cart_count' => WC()->cart->get_cart_contents_count()
-            ]);
-        } else {
-            wp_send_json_error('Failed to add product to cart');
+            // Use the first product ID for the bulk request
+            $main_product_id = $cart_product_ids[0];
+            
+            echo '<a href="#" class="button wssc-bulk-btn" data-product="' . esc_attr($main_product_id) . '">Buy Bulk</a>';
         }
     }
 
@@ -136,28 +132,6 @@ class WSSC_SideCart {
             }
         }
         return 0;
-    }
-
-    public function remove_from_cart() {
-        if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
-            wp_die('Invalid nonce');
-        }
-
-        $product_id = intval($_POST['product_id']);
-        
-        foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-            if ($cart_item['product_id'] == $product_id) {
-                $current_qty = $cart_item['quantity'];
-                if ($current_qty > 1) {
-                    WC()->cart->set_quantity($cart_item_key, $current_qty - 1);
-                } else {
-                    WC()->cart->remove_cart_item($cart_item_key);
-                }
-                break;
-            }
-        }
-
-        wp_send_json_success();
     }
 }
 new WSSC_SideCart();

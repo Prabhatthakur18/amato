@@ -1,6 +1,87 @@
-.wssc-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:10000;}
-.wssc-box{background:#fff;padding:20px;border-radius:8px;width:300px;max-width:90vw;}
-.wssc-box input,.wssc-box textarea{width:100%;margin:8px 0;padding:6px;box-sizing:border-box;}
+/* Modal Styling */
+.wssc-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0,0,0,.5) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 10000 !important;
+}
+
+.wssc-box {
+    background: #fff !important;
+    padding: 25px !important;
+    border-radius: 8px !important;
+    width: 400px !important;
+    max-width: 90vw !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+}
+
+.wssc-box h3 {
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+    color: #1d2327 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+}
+
+.wssc-box label {
+    display: block !important;
+    margin-bottom: 5px !important;
+    font-weight: 500 !important;
+    color: #1d2327 !important;
+    font-size: 14px !important;
+}
+
+.wssc-box input,
+.wssc-box textarea {
+    width: 100% !important;
+    margin: 8px 0 15px 0 !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+}
+
+.wssc-box input:focus,
+.wssc-box textarea:focus {
+    outline: none !important;
+    border-color: #0073aa !important;
+    box-shadow: 0 0 0 1px #0073aa !important;
+}
+
+.wssc-box .button {
+    margin-right: 10px !important;
+    padding: 8px 16px !important;
+    background: #0073aa !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+.wssc-box .button:hover {
+    background: #005177 !important;
+    color: #fff !important;
+}
+
+.wssc-box .button:last-child {
+    margin-right: 0 !important;
+    background: #666 !important;
+}
+
+.wssc-box .button:last-child:hover {
+    background: #555 !important;
+}
 
 /* Section Styling */
 .widget_shopping_cart .wssc-section {
@@ -93,7 +174,7 @@
     font-weight: 600 !important;
 }
 
-/* FIXED: Button centering */
+/* Product Actions - Button centering */
 .widget_shopping_cart .wssc-product-actions {
     width: 100% !important;
     display: flex !important;
@@ -140,10 +221,12 @@
     transform: translateY(0) !important;
 }
 
+.widget_shopping_cart .wssc-add-btn:disabled,
 .widget_shopping_cart .wssc-add-btn.loading {
     background: #666 !important;
     cursor: not-allowed !important;
     transform: none !important;
+    opacity: 0.7 !important;
 }
 
 /* Quantity Badge */
@@ -188,9 +271,10 @@
 .wssc-bulk-btn:hover {
     background: #e55a2b !important;
     color: #fff !important;
+    text-decoration: none !important;
 }
 
-/* Toast */
+/* Toast Notifications */
 .wssc-toast {
     position: fixed !important;
     bottom: 20px !important;
@@ -203,6 +287,27 @@
     opacity: 0.95 !important;
     z-index: 9999 !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    animation: slideInUp 0.3s ease-out !important;
+}
+
+.wssc-toast.success {
+    background: #00a32a !important;
+}
+
+.wssc-toast.error {
+    background: #d63638 !important;
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 0.95;
+    }
 }
 
 /* Mobile responsive */
@@ -221,5 +326,16 @@
         padding: 6px 12px !important;
         font-size: 11px !important;
         min-width: 60px !important;
+    }
+    
+    .wssc-box {
+        padding: 20px 15px !important;
+        margin: 0 10px !important;
+    }
+    
+    .wssc-toast {
+        right: 10px !important;
+        left: 10px !important;
+        bottom: 10px !important;
     }
 }
