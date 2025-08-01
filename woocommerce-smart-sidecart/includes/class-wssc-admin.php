@@ -21,7 +21,8 @@ class WSSC_Admin {
     }
 
     public function add_menu() {
-        add_menu_page('Side Cart Settings', 'Side Cart', 'manage_options', 'wssc-settings', [$this, 'settings_page'], 'dashicons-cart');
+        add_menu_page('Side Cart Settings', 'Side Cart', 'manage_options', 'wssc-settings', [$this, 'settings_page'], 'dashicons-cart', 56);
+        add_submenu_page('wssc-settings', 'CSV Upload', 'CSV Upload', 'manage_options', 'wssc-settings', [$this, 'settings_page']);
         add_submenu_page('wssc-settings', 'Bulk Requests', 'Bulk Requests', 'manage_options', 'wssc-bulk-requests', [$this, 'requests_page']);
     }
 
