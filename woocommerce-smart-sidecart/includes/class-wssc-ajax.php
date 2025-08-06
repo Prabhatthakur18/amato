@@ -51,6 +51,10 @@ class WSSC_Ajax {
 
         $product_id = intval($_POST['product_id']);
         $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
+        
+        // Get mobile brand and model data if provided
+        $mobile_brand = isset($_POST['mobile_brand']) ? sanitize_text_field($_POST['mobile_brand']) : '';
+        $mobile_model = isset($_POST['mobile_model']) ? sanitize_text_field($_POST['mobile_model']) : '';
 
         if ($product_id <= 0) {
             wp_send_json_error('Invalid product ID');
@@ -62,8 +66,16 @@ class WSSC_Ajax {
             wp_send_json_error('Product is not available for purchase');
         }
 
-        // Add to cart
-        $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity);
+        // Prepare cart item data with mobile info
+        $cart_item_data = [];
+        if (!empty($mobile_brand) && !empty($mobile_model)) {
+            $cart_item_data['mobile_brand'] = $mobile_brand;
+            $cart_item_data['mobile_model'] = $mobile_model;
+            $cart_item_data['unique_key'] = md5(microtime().rand());
+        }
+        
+        // Add to cart with mobile data
+        $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
 
         if ($cart_item_key) {
             wp_send_json_success([

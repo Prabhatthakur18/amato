@@ -28,6 +28,9 @@ class WSSC_SideCart {
 
         if (WC()->cart->is_empty()) return;
 
+        // First, render cart items with mobile data
+        $this->render_cart_items_with_mobile_data();
+
         $all_recommended = [];
         $all_interested = [];
         $cart_product_ids = [];
@@ -119,6 +122,49 @@ class WSSC_SideCart {
             echo '<span class="wssc-qty-badge">' . esc_html($qty) . '</span>';
         }
 
+        echo '</div>';
+    }
+
+    public function render_cart_items_with_mobile_data() {
+        if (WC()->cart->is_empty()) return;
+
+        echo '<div class="wssc-section">';
+        echo '<h4 class="wssc-section-title">Cart Items 🛒</h4>';
+        echo '<div class="wssc-cart-items">';
+        
+        foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+            $product = $cart_item['data'];
+            $product_id = $cart_item['product_id'];
+            $quantity = $cart_item['quantity'];
+            
+            // Get mobile brand and model data
+            $mobile_brand = isset($cart_item['mobile_brand']) ? $cart_item['mobile_brand'] : '';
+            $mobile_model = isset($cart_item['mobile_model']) ? $cart_item['mobile_model'] : '';
+            
+            echo '<div class="wssc-cart-item" data-key="' . esc_attr($cart_item_key) . '">';
+            echo '<div class="wssc-product-image">' . $product->get_image('woocommerce_gallery_thumbnail') . '</div>';
+            echo '<div class="wssc-cart-item-info">';
+            echo '<h5 class="wssc-product-name">' . esc_html($product->get_name()) . '</h5>';
+            echo '<div class="wssc-product-price">' . $product->get_price_html() . '</div>';
+            echo '<div class="wssc-quantity">Qty: ' . esc_html($quantity) . '</div>';
+            
+            // Display mobile brand and model if available
+            if (!empty($mobile_brand) || !empty($mobile_model)) {
+                echo '<div class="wssc-mobile-info">';
+                if (!empty($mobile_brand)) {
+                    echo '<div class="wssc-mobile-brand"><strong>Brand:</strong> ' . esc_html($mobile_brand) . '</div>';
+                }
+                if (!empty($mobile_model)) {
+                    echo '<div class="wssc-mobile-model"><strong>Model:</strong> ' . esc_html($mobile_model) . '</div>';
+                }
+                echo '</div>';
+            }
+            
+            echo '</div>';
+            echo '</div>';
+        }
+        
+        echo '</div>';
         echo '</div>';
     }
 

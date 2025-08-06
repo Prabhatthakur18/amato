@@ -7,18 +7,41 @@ jQuery(document).ready(function($) {
         var productId = button.data('product-id');
         var originalText = button.html();
         
+        // Check if mobile brand/model selector exists on the page
+        var mobileBrand = '';
+        var mobileModel = '';
+        
+        if ($('#mobile_brand').length && $('#mobile_model').length) {
+            mobileBrand = $('#mobile_brand').val();
+            mobileModel = $('#mobile_model').val();
+            
+            // Validate mobile selection if selectors are present
+            if (!mobileBrand || !mobileModel) {
+                showToast('❌ Please select mobile brand and model', 'error');
+                return;
+            }
+        }
+        
         // Disable button and show loading
         button.prop('disabled', true).html('Adding...');
+        
+        var ajaxData = {
+            action: 'wssc_add_to_cart',
+            product_id: productId,
+            quantity: 1,
+            nonce: wsscAjax.nonce
+        };
+        
+        // Add mobile data if available
+        if (mobileBrand && mobileModel) {
+            ajaxData.mobile_brand = mobileBrand;
+            ajaxData.mobile_model = mobileModel;
+        }
         
         $.ajax({
             url: wsscAjax.url,
             type: 'POST',
-            data: {
-                action: 'wssc_add_to_cart',
-                product_id: productId,
-                quantity: 1,
-                nonce: wsscAjax.nonce
-            },
+            data: ajaxData,
             success: function(response) {
                 if (response.success) {
                     // Update cart count
@@ -41,6 +64,11 @@ jQuery(document).ready(function($) {
                     
                     // Trigger cart update
                     $(document.body).trigger('wc_fragment_refresh');
+                    
+                    // Refresh the page to show updated cart items with mobile data
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
                 } else {
                     showToast('❌ Failed to add product', 'error');
                 }
