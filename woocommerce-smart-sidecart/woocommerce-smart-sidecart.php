@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Smart Side Cart + Bulk Buy
 Description: Adds a side cart with recommended products and bulk buying options.
 Version: 1.0.1
-Author: Custom
+Author: Prabhat Thakur
 */
 
 if (!defined('ABSPATH')) exit;
