@@ -81,7 +81,9 @@ class WSSC_Ajax {
             wp_send_json_success([
                 'message' => 'Product added to cart',
                 'cart_count' => WC()->cart->get_cart_contents_count(),
-                'cart_item_key' => $cart_item_key
+                'cart_item_key' => $cart_item_key,
+                'mobile_brand' => $mobile_brand,
+                'mobile_model' => $mobile_model
             ]);
         } else {
             wp_send_json_error('Failed to add product to cart');

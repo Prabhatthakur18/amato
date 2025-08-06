@@ -16,6 +16,11 @@ require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-db.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-ajax.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-sidecart.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-admin.php';
+require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-selector.php';
+require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-admin.php';
+
+// Global instances
+global $wssc_mobile_selector;
 
 // Initialize the plugin
 class WSSC_Plugin {
@@ -37,15 +42,24 @@ class WSSC_Plugin {
             return;
         }
         
+        // Initialize mobile selector first
+        global $wssc_mobile_selector;
+        $wssc_mobile_selector = new WSSC_Mobile_Selector();
+        
         // Initialize classes
         new WSSC_Ajax();
         new WSSC_SideCart();
         new WSSC_Admin();
+        new WSSC_Mobile_Admin();
     }
     
     public function activate() {
         // Create database table
         WSSC_DB::create_table();
+        
+        // Create mobile selector tables
+        $mobile_selector = new WSSC_Mobile_Selector();
+        $mobile_selector->create_tables();
         
         // Flush rewrite rules
         flush_rewrite_rules();

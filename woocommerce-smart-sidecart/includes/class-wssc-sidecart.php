@@ -6,17 +6,20 @@ class WSSC_SideCart {
         add_action('woocommerce_widget_shopping_cart_after_buttons', [$this, 'render_bulk_button']);
         add_action('woocommerce_widget_shopping_cart_after_buttons', [$this, 'render_sections']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+        
+        // Add debug hook to check cart data
+        add_action('wp_footer', [$this, 'debug_cart_data']);
     }
 
     public function enqueue_assets() {
         if (is_woocommerce() || is_cart() || is_checkout() || is_shop() || is_product_category() || is_product_tag() || is_product()) {
-            wp_enqueue_script('wssc-js', WSSC_PLUGIN_URL . 'assets/js/wssc.js', ['jquery'], '1.0.2', true);
+            wp_enqueue_script('wssc-js', WSSC_PLUGIN_URL . 'assets/js/wssc.js', ['jquery'], '1.0.3', true);
             wp_localize_script('wssc-js', 'wsscAjax', [
                 'url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('wssc_nonce')
             ]);
 
-            wp_enqueue_style('wssc-css', WSSC_PLUGIN_URL . 'assets/css/wssc.css', [], '1.0.2');
+            wp_enqueue_style('wssc-css', WSSC_PLUGIN_URL . 'assets/css/wssc.css', [], '1.0.3');
         }
     }
 
@@ -128,8 +131,8 @@ class WSSC_SideCart {
     public function render_cart_items_with_mobile_data() {
         if (WC()->cart->is_empty()) return;
 
-        echo '<div class="wssc-section">';
-        echo '<h4 class="wssc-section-title">Cart Items 🛒</h4>';
+        echo '<div class="wssc-section wssc-cart-section">';
+        echo '<h4 class="wssc-section-title">Your Cart Items 🛒</h4>';
         echo '<div class="wssc-cart-items">';
         
         foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
@@ -137,9 +140,28 @@ class WSSC_SideCart {
             $product_id = $cart_item['product_id'];
             $quantity = $cart_item['quantity'];
             
-            // Get mobile brand and model data
-            $mobile_brand = isset($cart_item['mobile_brand']) ? $cart_item['mobile_brand'] : '';
-            $mobile_model = isset($cart_item['mobile_model']) ? $cart_item['mobile_model'] : '';
+            // Debug: Check what's in cart_item
+            error_log('Cart Item Data: ' . print_r($cart_item, true));
+            
+            // Get mobile brand and model data - check multiple possible keys
+            $mobile_brand = '';
+            $mobile_model = '';
+            
+            // Check various possible keys where mobile data might be stored
+            if (isset($cart_item['mobile_brand'])) {
+                $mobile_brand = $cart_item['mobile_brand'];
+            }
+            if (isset($cart_item['mobile_model'])) {
+                $mobile_model = $cart_item['mobile_model'];
+            }
+            
+            // Also check if it's stored in a different format
+            if (empty($mobile_brand) && isset($cart_item['Mobile Brand'])) {
+                $mobile_brand = $cart_item['Mobile Brand'];
+            }
+            if (empty($mobile_model) && isset($cart_item['Mobile Model'])) {
+                $mobile_model = $cart_item['Mobile Model'];
+            }
             
             echo '<div class="wssc-cart-item" data-key="' . esc_attr($cart_item_key) . '">';
             echo '<div class="wssc-product-image">' . $product->get_image('woocommerce_gallery_thumbnail') . '</div>';
@@ -151,6 +173,7 @@ class WSSC_SideCart {
             // Display mobile brand and model if available
             if (!empty($mobile_brand) || !empty($mobile_model)) {
                 echo '<div class="wssc-mobile-info">';
+                echo '<div class="wssc-mobile-title">📱 Mobile Info:</div>';
                 if (!empty($mobile_brand)) {
                     echo '<div class="wssc-mobile-brand"><strong>Brand:</strong> ' . esc_html($mobile_brand) . '</div>';
                 }
@@ -179,6 +202,33 @@ class WSSC_SideCart {
             }
         }
         return 0;
+    }
+    
+    // Debug function to check cart data
+    public function debug_cart_data() {
+        if (!current_user_can('manage_options') || !isset($_GET['debug_cart'])) {
+            return;
+        }
+        
+        echo '<div style="position: fixed; bottom: 10px; right: 10px; background: #fff; padding: 10px; border: 1px solid #ccc; z-index: 9999; font-size: 12px; max-width: 400px; max-height: 300px; overflow: auto;">';
+        echo '<strong>Cart Debug Info:</strong><br>';
+        
+        if (WC()->cart && !WC()->cart->is_empty()) {
+            foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+                echo '<hr><strong>Item:</strong> ' . $cart_item['data']->get_name() . '<br>';
+                echo '<strong>Keys:</strong> ' . implode(', ', array_keys($cart_item)) . '<br>';
+                if (isset($cart_item['mobile_brand'])) {
+                    echo '<strong>Mobile Brand:</strong> ' . $cart_item['mobile_brand'] . '<br>';
+                }
+                if (isset($cart_item['mobile_model'])) {
+                    echo '<strong>Mobile Model:</strong> ' . $cart_item['mobile_model'] . '<br>';
+                }
+            }
+        } else {
+            echo 'Cart is empty';
+        }
+        
+        echo '</div>';
     }
 }
 
