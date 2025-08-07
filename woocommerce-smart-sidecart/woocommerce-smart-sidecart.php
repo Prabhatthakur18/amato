@@ -16,11 +16,6 @@ require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-db.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-ajax.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-sidecart.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-admin.php';
-require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-selector.php';
-require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-admin.php';
-
-// Global instances
-global $wssc_mobile_selector;
 
 // Initialize the plugin
 class WSSC_Plugin {
@@ -42,24 +37,15 @@ class WSSC_Plugin {
             return;
         }
         
-        // Initialize mobile selector first
-        global $wssc_mobile_selector;
-        $wssc_mobile_selector = new WSSC_Mobile_Selector();
-        
         // Initialize classes
         new WSSC_Ajax();
         new WSSC_SideCart();
         new WSSC_Admin();
-        new WSSC_Mobile_Admin();
     }
     
     public function activate() {
         // Create database table
         WSSC_DB::create_table();
-        
-        // Create mobile selector tables
-        $mobile_selector = new WSSC_Mobile_Selector();
-        $mobile_selector->create_tables();
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -85,6 +71,22 @@ class WSSC_Plugin {
         echo 'Ajax URL: ' . admin_url('admin-ajax.php') . '<br>';
         echo '</div>';
     }
+    // Hook into the mobile selector plugin if it exists
+add_action('init', function() {
+    // Check if the mobile selector functions exist
+    if (function_exists('mms_add_cart_item_data')) {
+        // Ensure our plugin uses the same cart item data structure
+        add_filter('woocommerce_add_cart_item_data', function($cart_item_data, $product_id, $variation_id) {
+            // This ensures compatibility with the mobile selector plugin
+            if (isset($_POST['mobile_brand']) && isset($_POST['mobile_model'])) {
+                $cart_item_data['mobile_brand'] = sanitize_text_field($_POST['mobile_brand']);
+                $cart_item_data['mobile_model'] = sanitize_text_field($_POST['mobile_model']);
+                $cart_item_data['unique_key'] = md5(microtime().rand());
+            }
+            return $cart_item_data;
+        }, 5, 3); // Lower priority to run before other plugins
+    }
+});
 }
 
 // Initialize the plugin

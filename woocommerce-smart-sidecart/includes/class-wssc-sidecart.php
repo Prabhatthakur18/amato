@@ -128,6 +128,7 @@ class WSSC_SideCart {
         echo '</div>';
     }
 
+    // ADD THIS NEW METHOD - This is where the mobile data will be displayed
     public function render_cart_items_with_mobile_data() {
         if (WC()->cart->is_empty()) return;
 
@@ -139,9 +140,6 @@ class WSSC_SideCart {
             $product = $cart_item['data'];
             $product_id = $cart_item['product_id'];
             $quantity = $cart_item['quantity'];
-            
-            // Debug: Check what's in cart_item
-            error_log('Cart Item Data: ' . print_r($cart_item, true));
             
             // Get mobile brand and model data - check multiple possible keys
             $mobile_brand = '';
@@ -181,6 +179,10 @@ class WSSC_SideCart {
                     echo '<div class="wssc-mobile-model"><strong>Model:</strong> ' . esc_html($mobile_model) . '</div>';
                 }
                 echo '</div>';
+            } else {
+                echo '<div class="wssc-mobile-info wssc-no-mobile">';
+                echo '<div class="wssc-mobile-debug">No mobile data found for this item</div>';
+                echo '</div>';
             }
             
             echo '</div>';
@@ -204,7 +206,7 @@ class WSSC_SideCart {
         return 0;
     }
     
-    // Debug function to check cart data
+    // ADD THIS DEBUG METHOD - This helps troubleshoot mobile data issues
     public function debug_cart_data() {
         if (!current_user_can('manage_options') || !isset($_GET['debug_cart'])) {
             return;

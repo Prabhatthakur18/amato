@@ -43,52 +43,52 @@ class WSSC_Ajax {
         }
     }
 
-    public function add_to_cart() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
-            wp_send_json_error('Invalid nonce');
-        }
-
-        $product_id = intval($_POST['product_id']);
-        $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
-        
-        // Get mobile brand and model data if provided
-        $mobile_brand = isset($_POST['mobile_brand']) ? sanitize_text_field($_POST['mobile_brand']) : '';
-        $mobile_model = isset($_POST['mobile_model']) ? sanitize_text_field($_POST['mobile_model']) : '';
-
-        if ($product_id <= 0) {
-            wp_send_json_error('Invalid product ID');
-        }
-
-        // Check if product exists and is purchasable
-        $product = wc_get_product($product_id);
-        if (!$product || !$product->is_purchasable()) {
-            wp_send_json_error('Product is not available for purchase');
-        }
-
-        // Prepare cart item data with mobile info
-        $cart_item_data = [];
-        if (!empty($mobile_brand) && !empty($mobile_model)) {
-            $cart_item_data['mobile_brand'] = $mobile_brand;
-            $cart_item_data['mobile_model'] = $mobile_model;
-            $cart_item_data['unique_key'] = md5(microtime().rand());
-        }
-        
-        // Add to cart with mobile data
-        $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
-
-        if ($cart_item_key) {
-            wp_send_json_success([
-                'message' => 'Product added to cart',
-                'cart_count' => WC()->cart->get_cart_contents_count(),
-                'cart_item_key' => $cart_item_key,
-                'mobile_brand' => $mobile_brand,
-                'mobile_model' => $mobile_model
-            ]);
-        } else {
-            wp_send_json_error('Failed to add product to cart');
-        }
+   public function add_to_cart() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
+        wp_send_json_error('Invalid nonce');
     }
+
+    $product_id = intval($_POST['product_id']);
+    $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
+    
+    // Get mobile brand and model data if provided
+    $mobile_brand = isset($_POST['mobile_brand']) ? sanitize_text_field($_POST['mobile_brand']) : '';
+    $mobile_model = isset($_POST['mobile_model']) ? sanitize_text_field($_POST['mobile_model']) : '';
+
+    if ($product_id <= 0) {
+        wp_send_json_error('Invalid product ID');
+    }
+
+    // Check if product exists and is purchasable
+    $product = wc_get_product($product_id);
+    if (!$product || !$product->is_purchasable()) {
+        wp_send_json_error('Product is not available for purchase');
+    }
+
+    // Prepare cart item data with mobile info
+    $cart_item_data = [];
+    if (!empty($mobile_brand) && !empty($mobile_model)) {
+        $cart_item_data['mobile_brand'] = $mobile_brand;
+        $cart_item_data['mobile_model'] = $mobile_model;
+        $cart_item_data['unique_key'] = md5(microtime().rand());
+    }
+    
+    // Add to cart with mobile data
+    $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
+
+    if ($cart_item_key) {
+        wp_send_json_success([
+            'message' => 'Product added to cart',
+            'cart_count' => WC()->cart->get_cart_contents_count(),
+            'cart_item_key' => $cart_item_key,
+            'mobile_brand' => $mobile_brand,
+            'mobile_model' => $mobile_model
+        ]);
+    } else {
+        wp_send_json_error('Failed to add product to cart');
+    }
+}
 
     public function update_request_status() {
         // Check user permissions
