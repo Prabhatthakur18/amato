@@ -22,14 +22,15 @@ class WSSC_Admin {
 
     public function add_menu() {
         add_menu_page('Side Cart Settings', 'Side Cart', 'manage_options', 'wssc-settings', [$this, 'settings_page'], 'dashicons-cart', 56);
-        add_submenu_page('wssc-settings', 'CSV Upload', 'CSV Upload', 'manage_options', 'wssc-settings', [$this, 'settings_page']);
+        add_submenu_page('wssc-settings', 'Product Relations CSV', 'Product Relations', 'manage_options', 'wssc-settings', [$this, 'settings_page']);
         add_submenu_page('wssc-settings', 'Bulk Requests', 'Bulk Requests', 'manage_options', 'wssc-bulk-requests', [$this, 'requests_page']);
     }
 
     public function settings_page() {
         ?>
         <div class="wrap">
-            <h1>Upload CSV for Product Relations</h1>
+            <h1>📦 Product Relations Management</h1>
+            <p class="description">Manage product recommendations that appear in the side cart ("Ye Bhi Jaruri he" and "Hume bhi dekh lo" sections).</p>
 
             <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
                 <div class="wssc-admin-toast success">
@@ -125,7 +126,8 @@ class WSSC_Admin {
         $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC");
         ?>
         <div class="wrap">
-            <h1>Bulk Requests</h1>
+            <h1>📋 Bulk Purchase Requests</h1>
+            <p class="description">Manage bulk purchase requests submitted by customers through the side cart.</p>
             
             <?php if (empty($results)): ?>
                 <div class="no-requests">

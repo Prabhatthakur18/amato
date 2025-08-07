@@ -24,7 +24,7 @@ class WSSC_Mobile_Admin {
     public function add_menu() {
         add_submenu_page(
             'wssc-settings', 
-            'Mobile Brands & Models', 
+            'Mobile Brands & Models Management', 
             'Mobile Selector', 
             'manage_options', 
             'wssc-mobile-selector', 
@@ -36,7 +36,8 @@ class WSSC_Mobile_Admin {
         $brands = $this->get_mobile_selector()->get_all_brands();
         ?>
         <div class="wrap">
-            <h1>Mobile Brands & Models Management</h1>
+            <h1>📱 Mobile Brands & Models Management</h1>
+            <p class="description">Manage mobile brands and models for the mobile selector feature. This data is used when customers select their mobile device on product pages.</p>
 
             <?php if (isset($_GET['success'])): ?>
                 <div class="wssc-admin-toast success">
