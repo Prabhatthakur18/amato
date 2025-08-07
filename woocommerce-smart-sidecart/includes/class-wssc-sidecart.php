@@ -6,9 +6,7 @@ class WSSC_SideCart {
         add_action('woocommerce_widget_shopping_cart_after_buttons', [$this, 'render_bulk_button']);
         add_action('woocommerce_widget_shopping_cart_after_buttons', [$this, 'render_sections']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
-        
-        // Add debug hook to check cart data
-        add_action('wp_footer', [$this, 'debug_cart_data']);
+        add_action('wp_footer', [$this, 'add_bulk_modal']);
     }
 
     public function enqueue_assets() {
@@ -193,8 +191,96 @@ class WSSC_SideCart {
         echo '</div>';
     }
 
-    public function add_bulk_button() {
-        // Disabled intentionally to avoid duplication
+    public function add_bulk_modal() {
+        ?>
+        <!-- Bulk Buy Modal -->
+        <div id="wssc-bulk-modal" class="wssc-modal" style="display: none;">
+            <div class="wssc-box">
+                <h3>Request Bulk Purchase</h3>
+                <form id="wssc-bulk-form">
+                    <input type="hidden" id="bulk-product-id" name="product_id">
+                    
+                    <label for="bulk-name">Name *</label>
+                    <input type="text" id="bulk-name" name="name" required>
+                    
+                    <label for="bulk-phone">Phone *</label>
+                    <input type="tel" id="bulk-phone" name="phone" required>
+                    
+                    <label for="bulk-email">Email</label>
+                    <input type="email" id="bulk-email" name="email">
+                    
+                    <label for="bulk-quantity">Quantity</label>
+                    <input type="number" id="bulk-quantity" name="quantity" value="10" min="1">
+                    
+                    <label for="bulk-message">Message</label>
+                    <textarea id="bulk-message" name="message" rows="3" placeholder="Any special requirements..."></textarea>
+                    
+                    <div style="margin-top: 15px;">
+                        <button type="submit" class="button">Submit Request</button>
+                        <button type="button" class="button" onclick="document.getElementById('wssc-bulk-modal').style.display='none'">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Handle bulk button click
+            $(document).on('click', '.wssc-bulk-btn', function(e) {
+                e.preventDefault();
+                var productId = $(this).data('product');
+                $('#bulk-product-id').val(productId);
+                $('#wssc-bulk-modal').show();
+            });
+            
+            // Handle bulk form submission
+            $('#wssc-bulk-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = {
+                    action: 'wssc_buy_bulk',
+                    product_id: $('#bulk-product-id').val(),
+                    name: $('#bulk-name').val(),
+                    phone: $('#bulk-phone').val(),
+                    email: $('#bulk-email').val(),
+                    quantity: $('#bulk-quantity').val(),
+                    message: $('#bulk-message').val(),
+                    nonce: '<?php echo wp_create_nonce('wssc_nonce'); ?>'
+                };
+                
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('✅ ' + response.data.message, 'success');
+                            $('#wssc-bulk-modal').hide();
+                            $('#wssc-bulk-form')[0].reset();
+                        } else {
+                            showToast('❌ ' + response.data, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('❌ Error submitting request', 'error');
+                    }
+                });
+            });
+            
+            // Toast function
+            function showToast(message, type) {
+                var toast = $('<div class="wssc-toast ' + type + '">' + message + '</div>');
+                $('body').append(toast);
+                
+                setTimeout(function() {
+                    toast.fadeOut(400, function() {
+                        toast.remove();
+                    });
+                }, 4000);
+            }
+        });
+        </script>
+        <?php
     }
 
     private function get_cart_quantity($product_id) {
@@ -205,33 +291,4 @@ class WSSC_SideCart {
         }
         return 0;
     }
-    
-    // ADD THIS DEBUG METHOD - This helps troubleshoot mobile data issues
-    public function debug_cart_data() {
-        if (!current_user_can('manage_options') || !isset($_GET['debug_cart'])) {
-            return;
-        }
-        
-        echo '<div style="position: fixed; bottom: 10px; right: 10px; background: #fff; padding: 10px; border: 1px solid #ccc; z-index: 9999; font-size: 12px; max-width: 400px; max-height: 300px; overflow: auto;">';
-        echo '<strong>Cart Debug Info:</strong><br>';
-        
-        if (WC()->cart && !WC()->cart->is_empty()) {
-            foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-                echo '<hr><strong>Item:</strong> ' . $cart_item['data']->get_name() . '<br>';
-                echo '<strong>Keys:</strong> ' . implode(', ', array_keys($cart_item)) . '<br>';
-                if (isset($cart_item['mobile_brand'])) {
-                    echo '<strong>Mobile Brand:</strong> ' . $cart_item['mobile_brand'] . '<br>';
-                }
-                if (isset($cart_item['mobile_model'])) {
-                    echo '<strong>Mobile Model:</strong> ' . $cart_item['mobile_model'] . '<br>';
-                }
-            }
-        } else {
-            echo 'Cart is empty';
-        }
-        
-        echo '</div>';
-    }
 }
-
-new WSSC_SideCart();

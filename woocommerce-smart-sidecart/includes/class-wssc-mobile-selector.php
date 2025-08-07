@@ -3,9 +3,6 @@ if (!defined('ABSPATH')) exit;
 
 class WSSC_Mobile_Selector {
     public function __construct() {
-        // Database setup
-        register_activation_hook(WSSC_PLUGIN_PATH . 'woocommerce-smart-sidecart.php', [$this, 'create_tables']);
-        
         // Frontend functionality
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_shortcode('mobile_selector', [$this, 'render_selector']);

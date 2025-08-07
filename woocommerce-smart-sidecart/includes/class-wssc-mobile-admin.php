@@ -11,10 +11,14 @@ class WSSC_Mobile_Admin {
         add_action('admin_post_wssc_add_model', [$this, 'handle_add_model']);
         add_action('admin_post_wssc_delete_brand', [$this, 'handle_delete_brand']);
         add_action('admin_post_wssc_delete_model', [$this, 'handle_delete_model']);
-        
-        // Get mobile selector instance
+    }
+    
+    private function get_mobile_selector() {
         global $wssc_mobile_selector;
-        $this->mobile_selector = $wssc_mobile_selector;
+        if (!$wssc_mobile_selector) {
+            $wssc_mobile_selector = new WSSC_Mobile_Selector();
+        }
+        return $wssc_mobile_selector;
     }
 
     public function add_menu() {
@@ -29,7 +33,7 @@ class WSSC_Mobile_Admin {
     }
 
     public function mobile_page() {
-        $brands = $this->mobile_selector->get_all_brands();
+        $brands = $this->get_mobile_selector()->get_all_brands();
         ?>
         <div class="wrap">
             <h1>Mobile Brands & Models Management</h1>
@@ -117,7 +121,7 @@ class WSSC_Mobile_Admin {
 
                             <!-- Models List -->
                             <?php 
-                            $models = $this->mobile_selector->get_models_by_brand($brand->id);
+                            $models = $this->get_mobile_selector()->get_models_by_brand($brand->id);
                             if (!empty($models)): ?>
                                 <div class="wssc-models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
                                     <?php foreach ($models as $model): ?>
@@ -242,7 +246,7 @@ class WSSC_Mobile_Admin {
         $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
 
         if (!empty($brand_name)) {
-            $result = $this->mobile_selector->add_brand($brand_name);
+            $result = $this->get_mobile_selector()->add_brand($brand_name);
             if ($result) {
                 $redirect_url .= '&success=1&message=' . urlencode("Brand '$brand_name' added successfully!");
             } else {
@@ -266,7 +270,7 @@ class WSSC_Mobile_Admin {
         $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
 
         if ($brand_id > 0 && !empty($model_name)) {
-            $result = $this->mobile_selector->add_model($brand_id, $model_name);
+            $result = $this->get_mobile_selector()->add_model($brand_id, $model_name);
             if ($result) {
                 $redirect_url .= '&success=1&message=' . urlencode("Model '$model_name' added successfully!");
             } else {
@@ -289,7 +293,7 @@ class WSSC_Mobile_Admin {
         $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
 
         if ($brand_id > 0) {
-            $result = $this->mobile_selector->delete_brand($brand_id);
+            $result = $this->get_mobile_selector()->delete_brand($brand_id);
             if ($result) {
                 $redirect_url .= '&success=1&message=' . urlencode('Brand and all its models deleted successfully!');
             } else {
@@ -310,7 +314,7 @@ class WSSC_Mobile_Admin {
         $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
 
         if ($model_id > 0) {
-            $result = $this->mobile_selector->delete_model($model_id);
+            $result = $this->get_mobile_selector()->delete_model($model_id);
             if ($result) {
                 $redirect_url .= '&success=1&message=' . urlencode('Model deleted successfully!');
             } else {

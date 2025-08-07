@@ -1,29 +1,9 @@
-// In wssc.js, update the add to cart functionality
 $(document).on('click', '.wssc-add-btn', function(e) {
     e.preventDefault();
     
     var button = $(this);
     var productId = button.data('product-id');
     var originalText = button.html();
-    
-    // Check if mobile brand/model selector exists on the page
-    var mobileBrand = '';
-    var mobileModel = '';
-    
-    // Look for mobile selector with any instance ID
-    var brandSelect = $('[id^="mobile_brand_"]').first();
-    var modelSelect = $('[id^="mobile_model_"]').first();
-    
-    if (brandSelect.length && modelSelect.length) {
-        mobileBrand = brandSelect.val();
-        mobileModel = modelSelect.val();
-        
-        // Validate mobile selection if selectors are present
-        if (!mobileBrand || !mobileModel) {
-            showToast('❌ Please select mobile brand and model', 'error');
-            return;
-        }
-    }
     
     // Disable button and show loading
     button.prop('disabled', true).html('Adding...');
@@ -34,12 +14,6 @@ $(document).on('click', '.wssc-add-btn', function(e) {
         quantity: 1,
         nonce: wsscAjax.nonce
     };
-    
-    // Add mobile data if available
-    if (mobileBrand && mobileModel) {
-        ajaxData.mobile_brand = mobileBrand;
-        ajaxData.mobile_model = mobileModel;
-    }
     
     $.ajax({
         url: wsscAjax.url,
@@ -65,13 +39,8 @@ $(document).on('click', '.wssc-add-btn', function(e) {
                 // Show success message
                 showToast('✅ Product added to cart!', 'success');
                 
-                // Trigger cart update
+                // Update cart fragments
                 $(document.body).trigger('wc_fragment_refresh');
-                
-                // Refresh the page to show updated cart items with mobile data
-                setTimeout(function() {
-                    location.reload();
-                }, 1000);
             } else {
                 showToast('❌ Failed to add product', 'error');
             }
@@ -85,3 +54,15 @@ $(document).on('click', '.wssc-add-btn', function(e) {
         }
     });
 });
+
+// Toast function
+function showToast(message, type) {
+    var toast = $('<div class="wssc-toast ' + type + '">' + message + '</div>');
+    $('body').append(toast);
+    
+    setTimeout(function() {
+        toast.fadeOut(400, function() {
+            toast.remove();
+        });
+    }, 4000);
+}

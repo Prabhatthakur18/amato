@@ -2,7 +2,7 @@
 /*
 Plugin Name: WooCommerce Smart Side Cart + Bulk Buy
 Description: Adds a side cart with recommended products and bulk buying options.
-Version: 1.0.1
+Version: 1.0.2
 Author: Prabhat Thakur
 */
 
@@ -13,6 +13,8 @@ define('WSSC_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Include all required classes
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-db.php';
+require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-selector.php';
+require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-mobile-admin.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-ajax.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-sidecart.php';
 require_once WSSC_PLUGIN_PATH . 'includes/class-wssc-admin.php';
@@ -37,15 +39,24 @@ class WSSC_Plugin {
             return;
         }
         
-        // Initialize classes
+        // Initialize mobile selector first (other classes depend on it)
+        global $wssc_mobile_selector;
+        $wssc_mobile_selector = new WSSC_Mobile_Selector();
+        
+        // Initialize other classes
+        new WSSC_Mobile_Admin();
         new WSSC_Ajax();
         new WSSC_SideCart();
         new WSSC_Admin();
     }
     
     public function activate() {
-        // Create database table
+        // Create database tables
         WSSC_DB::create_table();
+        
+        // Create mobile selector tables
+        $mobile_selector = new WSSC_Mobile_Selector();
+        $mobile_selector->create_tables();
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -71,7 +82,12 @@ class WSSC_Plugin {
         echo 'Ajax URL: ' . admin_url('admin-ajax.php') . '<br>';
         echo '</div>';
     }
-    // Hook into the mobile selector plugin if it exists
+}
+
+// Initialize the plugin
+new WSSC_Plugin();
+
+// Hook into the mobile selector plugin compatibility
 add_action('init', function() {
     // Check if the mobile selector functions exist
     if (function_exists('mms_add_cart_item_data')) {
@@ -87,7 +103,3 @@ add_action('init', function() {
         }, 5, 3); // Lower priority to run before other plugins
     }
 });
-}
-
-// Initialize the plugin
-new WSSC_Plugin();
