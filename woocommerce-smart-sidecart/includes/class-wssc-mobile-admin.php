@@ -26,7 +26,7 @@ class WSSC_Mobile_Admin {
     public function add_menu() {
         add_submenu_page(
             'wssc-settings', 
-            'Mobile Brands & Models Management', 
+            'Mobile Selector', 
             'Mobile Selector',
             'manage_options', 
             'wssc-mobile-selector', 

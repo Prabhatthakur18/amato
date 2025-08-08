@@ -230,20 +230,28 @@ class WSSC_SideCart {
                 e.preventDefault();
                 var productId = $(this).data('product');
                 $('#bulk-product-id').val(productId);
-                $('#wssc-bulk-modal').css('display', 'flex').show();
+                $('#wssc-bulk-modal').show().css('display', 'flex');
             });
             
             // Handle cancel button click
             $(document).on('click', '.wssc-cancel-bulk', function(e) {
                 e.preventDefault();
-                $('#wssc-bulk-modal').hide();
+                $('#wssc-bulk-modal').hide().css('display', 'none');
                 $('#wssc-bulk-form')[0].reset();
             });
             
             // Close modal when clicking outside
-            $(document).on('click', '.wssc-modal', function(e) {
+            $(document).on('click', '#wssc-bulk-modal', function(e) {
                 if (e.target === this) {
-                    $(this).hide();
+                    $(this).hide().css('display', 'none');
+                    $('#wssc-bulk-form')[0].reset();
+                }
+            });
+            
+            // Close modal with Escape key
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && $('#wssc-bulk-modal').is(':visible')) {
+                    $('#wssc-bulk-modal').hide().css('display', 'none');
                     $('#wssc-bulk-form')[0].reset();
                 }
             });
@@ -263,6 +271,11 @@ class WSSC_SideCart {
                     nonce: '<?php echo wp_create_nonce('wssc_nonce'); ?>'
                 };
                 
+                // Disable submit button during request
+                var submitBtn = $(this).find('button[type="submit"]');
+                var originalText = submitBtn.text();
+                submitBtn.prop('disabled', true).text('Submitting...');
+                
                 $.ajax({
                     url: '<?php echo admin_url('admin-ajax.php'); ?>',
                     type: 'POST',
@@ -270,7 +283,7 @@ class WSSC_SideCart {
                     success: function(response) {
                         if (response.success) {
                             showToast('✅ ' + response.data.message, 'success');
-                            $('#wssc-bulk-modal').css('display', 'none').hide();
+                            $('#wssc-bulk-modal').hide().css('display', 'none');
                             $('#wssc-bulk-form')[0].reset();
                         } else {
                             showToast('❌ ' + response.data, 'error');
@@ -278,6 +291,10 @@ class WSSC_SideCart {
                     },
                     error: function() {
                         showToast('❌ Error submitting request', 'error');
+                    },
+                    complete: function() {
+                        // Re-enable submit button
+                        submitBtn.prop('disabled', false).text(originalText);
                     }
                 });
             });
