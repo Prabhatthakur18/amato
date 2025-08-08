@@ -194,7 +194,7 @@ class WSSC_SideCart {
     public function add_bulk_modal() {
         ?>
         <!-- Bulk Buy Modal -->
-        <div id="wssc-bulk-modal" class="wssc-modal" style="display: none;">
+        <div id="wssc-bulk-modal" class="wssc-modal" style="display: none !important;">
             <div class="wssc-box">
                 <h3>Request Bulk Purchase</h3>
                 <form id="wssc-bulk-form">
@@ -217,7 +217,7 @@ class WSSC_SideCart {
                     
                     <div style="margin-top: 15px;">
                         <button type="submit" class="button">Submit Request</button>
-                        <button type="button" class="button" onclick="document.getElementById('wssc-bulk-modal').style.display='none'">Cancel</button>
+                        <button type="button" class="button wssc-cancel-bulk">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -230,7 +230,22 @@ class WSSC_SideCart {
                 e.preventDefault();
                 var productId = $(this).data('product');
                 $('#bulk-product-id').val(productId);
-                $('#wssc-bulk-modal').show();
+                $('#wssc-bulk-modal').css('display', 'flex').show();
+            });
+            
+            // Handle cancel button click
+            $(document).on('click', '.wssc-cancel-bulk', function(e) {
+                e.preventDefault();
+                $('#wssc-bulk-modal').hide();
+                $('#wssc-bulk-form')[0].reset();
+            });
+            
+            // Close modal when clicking outside
+            $(document).on('click', '.wssc-modal', function(e) {
+                if (e.target === this) {
+                    $(this).hide();
+                    $('#wssc-bulk-form')[0].reset();
+                }
             });
             
             // Handle bulk form submission
@@ -255,7 +270,7 @@ class WSSC_SideCart {
                     success: function(response) {
                         if (response.success) {
                             showToast('✅ ' + response.data.message, 'success');
-                            $('#wssc-bulk-modal').hide();
+                            $('#wssc-bulk-modal').css('display', 'none').hide();
                             $('#wssc-bulk-form')[0].reset();
                         } else {
                             showToast('❌ ' + response.data, 'error');

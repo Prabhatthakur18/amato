@@ -10,6 +10,11 @@
     align-items: center !important;
     justify-content: center !important;
     z-index: 10000 !important;
+    display: none !important;
+}
+
+.wssc-modal.show {
+    display: flex !important;
 }
 
 .wssc-box {

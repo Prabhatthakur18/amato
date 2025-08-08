@@ -7,6 +7,8 @@ class WSSC_Mobile_Admin {
     public function __construct() {
         add_action('admin_menu', [$this, 'add_menu']);
         add_action('admin_post_wssc_upload_mobile_csv', [$this, 'handle_mobile_csv']);
+        add_action('admin_post_wssc_upload_brands_csv', [$this, 'handle_brands_csv']);
+        add_action('admin_post_wssc_upload_models_csv', [$this, 'handle_models_csv']);
         add_action('admin_post_wssc_add_brand', [$this, 'handle_add_brand']);
         add_action('admin_post_wssc_add_model', [$this, 'handle_add_model']);
         add_action('admin_post_wssc_delete_brand', [$this, 'handle_delete_brand']);
@@ -25,7 +27,7 @@ class WSSC_Mobile_Admin {
         add_submenu_page(
             'wssc-settings', 
             'Mobile Brands & Models Management', 
-            'Mobile Selector', 
+            'Mobile Selector',
             'manage_options', 
             'wssc-mobile-selector', 
             [$this, 'mobile_page']
@@ -52,19 +54,91 @@ class WSSC_Mobile_Admin {
             <!-- CSV Upload Section -->
             <div class="wssc-upload-section">
                 <h3>📁 Upload CSV File</h3>
-                <p>Upload a CSV file with brands and models. Format: <code>Brand Name, Model Name</code></p>
+                <p>Upload CSV files for brands and models. Use the format from your sample files:</p>
                 <ol>
-                    <li><strong>Column 1:</strong> Brand Name (e.g., Samsung, Apple, OnePlus)</li>
-                    <li><strong>Column 2:</strong> Model Name (e.g., Galaxy S21, iPhone 13, OnePlus 9)</li>
+                    <li><strong>Brands CSV:</strong> id, brand_name (e.g., 1, Samsung)</li>
+                    <li><strong>Models CSV:</strong> id, brand_id, model_name (e.g., 1, 1, Samsung S8)</li>
                 </ol>
                 
-                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data" class="wssc-upload-form">
-                    <input type="hidden" name="action" value="wssc_upload_mobile_csv">
-                    <?php wp_nonce_field('wssc_mobile_csv', 'wssc_mobile_nonce'); ?>
+                <!-- Brands CSV Upload -->
+                <div style="margin-bottom: 20px;">
+                    <h4>📱 Upload Brands CSV</h4>
+                    <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data" class="wssc-upload-form">
+                        <input type="hidden" name="action" value="wssc_upload_brands_csv">
+                        <?php wp_nonce_field('wssc_brands_csv', 'wssc_brands_nonce'); ?>
+                        
+                        <div class="upload-area">
+                            <input type="file" name="wssc_brands_csv" id="wssc_brands_csv" required accept=".csv" class="file-input">
+                            <label for="wssc_brands_csv" class="file-label">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">Choose Brands CSV File</span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="button button-primary button-large">
+                            <span class="upload-icon">⬆️</span>
+                            Upload Brands CSV
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Models CSV Upload -->
+                <div style="margin-bottom: 20px;">
+                    <h4>📱 Upload Models CSV</h4>
+                    <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data" class="wssc-upload-form">
+                        <input type="hidden" name="action" value="wssc_upload_models_csv">
+                        <?php wp_nonce_field('wssc_models_csv', 'wssc_models_nonce'); ?>
+                        
+                        <div class="upload-area">
+                            <input type="file" name="wssc_models_csv" id="wssc_models_csv" required accept=".csv" class="file-input">
+                            <label for="wssc_models_csv" class="file-label">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">Choose Models CSV File</span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="button button-primary button-large">
+                            <span class="upload-icon">⬆️</span>
+                            Upload Models CSV
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Combined Upload (Legacy) -->
+                <div style="border-top: 1px solid #ddd; padding-top: 20px;">
+                    <h4>📱 Upload Combined CSV (Legacy Format)</h4>
+                    <p>Upload a single CSV with format: Brand Name, Model Name</p>
+                    <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data" class="wssc-upload-form">
+                        <input type="hidden" name="action" value="wssc_upload_mobile_csv">
+                        <?php wp_nonce_field('wssc_mobile_csv', 'wssc_mobile_nonce'); ?>
+                        
+                        <div class="upload-area">
+                            <input type="file" name="wssc_mobile_csv" id="wssc_mobile_csv" required accept=".csv" class="file-input">
+                            <label for="wssc_mobile_csv" class="file-label">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">Choose Combined CSV File</span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="button button-primary button-large">
+                            <span class="upload-icon">⬆️</span>
+                            Upload Combined CSV
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Manual Add Section -->
+            <div class="wssc-upload-section">
+                <h3>➕ Add Brand Manually</h3>
+                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" class="wssc-upload-form">
+                    <input type="hidden" name="action" value="wssc_add_brand">
+                    <?php wp_nonce_field('wssc_add_brand', 'wssc_brand_nonce'); ?>
                     
-                    <div class="upload-area">
-                        <input type="file" name="wssc_mobile_csv" id="wssc_mobile_csv" required accept=".csv" class="file-input">
-                        <label for="wssc_mobile_csv" class="file-label">
+                    <input type="text" name="brand_name" placeholder="Enter brand name" required style="padding: 8px 12px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <button type="submit" class="button button-primary">Add Brand</button>
+                </form>
+            </div>
                             <span class="file-icon">📁</span>
                             <span class="file-text">Choose CSV File</span>
                         </label>
