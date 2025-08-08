@@ -139,29 +139,6 @@ class WSSC_Mobile_Admin {
                     <button type="submit" class="button button-primary">Add Brand</button>
                 </form>
             </div>
-                            <span class="file-icon">📁</span>
-                            <span class="file-text">Choose CSV File</span>
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="button button-primary button-large">
-                        <span class="upload-icon">⬆️</span>
-                        Upload CSV
-                    </button>
-                </form>
-            </div>
-
-            <!-- Manual Add Section -->
-            <div class="wssc-upload-section">
-                <h3>➕ Add Brand Manually</h3>
-                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" class="wssc-upload-form">
-                    <input type="hidden" name="action" value="wssc_add_brand">
-                    <?php wp_nonce_field('wssc_add_brand', 'wssc_brand_nonce'); ?>
-                    
-                    <input type="text" name="brand_name" placeholder="Enter brand name" required style="padding: 8px 12px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                    <button type="submit" class="button button-primary">Add Brand</button>
-                </form>
-            </div>
 
             <!-- Brands & Models Display -->
             <div class="wssc-upload-section">
@@ -306,6 +283,137 @@ class WSSC_Mobile_Admin {
             $redirect_url .= '&success=1&message=' . urlencode($message);
         } else {
             $redirect_url .= '&error=1&message=' . urlencode('Failed to process CSV file');
+        }
+
+        wp_redirect($redirect_url);
+        exit;
+    }
+
+    public function handle_brands_csv() {
+        if (!isset($_POST['wssc_brands_nonce']) || !wp_verify_nonce($_POST['wssc_brands_nonce'], 'wssc_brands_csv')) {
+            wp_die('Invalid nonce');
+        }
+
+        $success = false;
+        $message = '';
+        $brands_added = 0;
+
+        if (!empty($_FILES['wssc_brands_csv']['tmp_name'])) {
+            $file = fopen($_FILES['wssc_brands_csv']['tmp_name'], 'r');
+
+            if ($file) {
+                global $wpdb;
+                $brand_table = $wpdb->prefix . 'wssc_mobile_brands';
+
+                // Skip header row
+                $header = fgetcsv($file);
+
+                while (($row = fgetcsv($file)) !== false) {
+                    if (count($row) >= 2) {
+                        $brand_id = intval($row[0]);
+                        $brand_name = trim($row[1]);
+
+                        if (!empty($brand_name)) {
+                            // Check if brand already exists
+                            $existing = $wpdb->get_var($wpdb->prepare(
+                                "SELECT id FROM $brand_table WHERE brand_name = %s", 
+                                $brand_name
+                            ));
+
+                            if (!$existing) {
+                                $result = $wpdb->insert($brand_table, ['brand_name' => $brand_name]);
+                                if ($result) {
+                                    $brands_added++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                fclose($file);
+                $success = true;
+                $message = "Added $brands_added brands successfully!";
+            }
+        }
+
+        // Redirect with result
+        $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
+        if ($success) {
+            $redirect_url .= '&success=1&message=' . urlencode($message);
+        } else {
+            $redirect_url .= '&error=1&message=' . urlencode('Failed to process brands CSV file');
+        }
+
+        wp_redirect($redirect_url);
+        exit;
+    }
+
+    public function handle_models_csv() {
+        if (!isset($_POST['wssc_models_nonce']) || !wp_verify_nonce($_POST['wssc_models_nonce'], 'wssc_models_csv')) {
+            wp_die('Invalid nonce');
+        }
+
+        $success = false;
+        $message = '';
+        $models_added = 0;
+
+        if (!empty($_FILES['wssc_models_csv']['tmp_name'])) {
+            $file = fopen($_FILES['wssc_models_csv']['tmp_name'], 'r');
+
+            if ($file) {
+                global $wpdb;
+                $brand_table = $wpdb->prefix . 'wssc_mobile_brands';
+                $model_table = $wpdb->prefix . 'wssc_mobile_models';
+
+                // Skip header row
+                $header = fgetcsv($file);
+
+                while (($row = fgetcsv($file)) !== false) {
+                    if (count($row) >= 3) {
+                        $model_id = intval($row[0]);
+                        $brand_id = intval($row[1]);
+                        $model_name = trim($row[2]);
+
+                        if ($brand_id > 0 && !empty($model_name)) {
+                            // Check if brand exists
+                            $brand_exists = $wpdb->get_var($wpdb->prepare(
+                                "SELECT id FROM $brand_table WHERE id = %d", 
+                                $brand_id
+                            ));
+
+                            if ($brand_exists) {
+                                // Check if model already exists
+                                $existing_model = $wpdb->get_var($wpdb->prepare(
+                                    "SELECT id FROM $model_table WHERE brand_id = %d AND model_name = %s", 
+                                    $brand_id, $model_name
+                                ));
+
+                                if (!$existing_model) {
+                                    $result = $wpdb->insert($model_table, [
+                                        'brand_id' => $brand_id,
+                                        'model_name' => $model_name
+                                    ]);
+                                    if ($result) {
+                                        $models_added++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                fclose($file);
+                $success = true;
+                $message = "Added $models_added models successfully!";
+            }
+        }
+
+        // Redirect with result
+        $redirect_url = admin_url('admin.php?page=wssc-mobile-selector');
+        if ($success) {
+            $redirect_url .= '&success=1&message=' . urlencode($message);
+        } else {
+            $redirect_url .= '&error=1&message=' . urlencode('Failed to process models CSV file');
         }
 
         wp_redirect($redirect_url);
