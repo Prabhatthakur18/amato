@@ -194,7 +194,7 @@ class WSSC_SideCart {
     public function add_bulk_modal() {
         ?>
         <!-- Bulk Buy Modal -->
-        <div id="wssc-bulk-modal" class="wssc-modal" style="display: none !important;">
+        <div id="wssc-bulk-modal" class="wssc-modal">
             <div class="wssc-box">
                 <h3>Request Bulk Purchase</h3>
                 <form id="wssc-bulk-form">
@@ -217,101 +217,11 @@ class WSSC_SideCart {
                     
                     <div style="margin-top: 15px;">
                         <button type="submit" class="button">Submit Request</button>
-                        <button type="button" class="button wssc-cancel-bulk">Cancel</button>
+                        <button type="button" class="button" id="wssc-cancel-bulk">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
-        
-        <script>
-        jQuery(document).ready(function($) {
-            // Handle bulk button click
-            $(document).on('click', '.wssc-bulk-btn', function(e) {
-                e.preventDefault();
-                var productId = $(this).data('product');
-                $('#bulk-product-id').val(productId);
-                $('#wssc-bulk-modal').show().css('display', 'flex !important');
-            });
-            
-            // Handle cancel button click
-            $(document).on('click', '.wssc-cancel-bulk', function(e) {
-                e.preventDefault();
-                $('#wssc-bulk-modal').hide().css('display', 'none !important');
-                $('#wssc-bulk-form')[0].reset();
-            });
-            
-            // Close modal when clicking outside
-            $(document).on('click', '#wssc-bulk-modal', function(e) {
-                if (e.target === this) {
-                    $(this).hide().css('display', 'none !important');
-                    $('#wssc-bulk-form')[0].reset();
-                }
-            });
-            
-            // Close modal with Escape key
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape' && $('#wssc-bulk-modal').is(':visible')) {
-                    $('#wssc-bulk-modal').hide().css('display', 'none !important');
-                    $('#wssc-bulk-form')[0].reset();
-                }
-            });
-            
-            // Handle bulk form submission
-            $('#wssc-bulk-form').on('submit', function(e) {
-                e.preventDefault();
-                
-                var formData = {
-                    action: 'wssc_buy_bulk',
-                    product_id: $('#bulk-product-id').val(),
-                    name: $('#bulk-name').val(),
-                    phone: $('#bulk-phone').val(),
-                    email: $('#bulk-email').val(),
-                    quantity: $('#bulk-quantity').val(),
-                    message: $('#bulk-message').val(),
-                    nonce: '<?php echo wp_create_nonce('wssc_nonce'); ?>'
-                };
-                
-                // Disable submit button during request
-                var submitBtn = $(this).find('button[type="submit"]');
-                var originalText = submitBtn.text();
-                submitBtn.prop('disabled', true).text('Submitting...');
-                
-                $.ajax({
-                    url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                    type: 'POST',
-                    data: formData,
-                    success: function(response) {
-                        if (response.success) {
-                            showToast('✅ ' + response.data.message, 'success');
-                            $('#wssc-bulk-modal').hide().css('display', 'none !important');
-                            $('#wssc-bulk-form')[0].reset();
-                        } else {
-                            showToast('❌ ' + response.data, 'error');
-                        }
-                    },
-                    error: function() {
-                        showToast('❌ Error submitting request', 'error');
-                    },
-                    complete: function() {
-                        // Re-enable submit button
-                        submitBtn.prop('disabled', false).text(originalText);
-                    }
-                });
-            });
-            
-            // Toast function
-            function showToast(message, type) {
-                var toast = $('<div class="wssc-toast ' + type + '">' + message + '</div>');
-                $('body').append(toast);
-                
-                setTimeout(function() {
-                    toast.fadeOut(400, function() {
-                        toast.remove();
-                    });
-                }, 4000);
-            }
-        });
-        </script>
         <?php
     }
 

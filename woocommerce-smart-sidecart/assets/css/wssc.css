@@ -6,27 +6,21 @@
     width: 100% !important;
     height: 100% !important;
     background: rgba(0,0,0,0.7) !important;
-    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     z-index: 10000 !important;
     display: none;
-    visibility: hidden;
-    opacity: 0;
-    transition: all 0.3s ease !important;
-}
-
-.wssc-modal.show {
-    display: flex;
-    visibility: visible;
-    opacity: 1;
-}
-
-.wssc-modal[style*="display: none"] {
-    display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
+    transition: all 0.3s ease;
 }
+
+.wssc-modal.wssc-modal-show {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 
 .wssc-box {
     background: #fff !important;
