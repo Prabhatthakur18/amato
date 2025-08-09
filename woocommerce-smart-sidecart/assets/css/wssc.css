@@ -10,19 +10,19 @@
     align-items: center !important;
     justify-content: center !important;
     z-index: 10000 !important;
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.3s ease !important;
 }
 
 .wssc-modal.show {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    display: flex;
+    visibility: visible;
+    opacity: 1;
 }
 
-.wssc-modal:not(.show) {
+.wssc-modal[style*="display: none"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

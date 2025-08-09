@@ -230,20 +230,20 @@ class WSSC_SideCart {
                 e.preventDefault();
                 var productId = $(this).data('product');
                 $('#bulk-product-id').val(productId);
-                $('#wssc-bulk-modal').show().css('display', 'flex');
+                $('#wssc-bulk-modal').show().css('display', 'flex !important');
             });
             
             // Handle cancel button click
             $(document).on('click', '.wssc-cancel-bulk', function(e) {
                 e.preventDefault();
-                $('#wssc-bulk-modal').hide().css('display', 'none');
+                $('#wssc-bulk-modal').hide().css('display', 'none !important');
                 $('#wssc-bulk-form')[0].reset();
             });
             
             // Close modal when clicking outside
             $(document).on('click', '#wssc-bulk-modal', function(e) {
                 if (e.target === this) {
-                    $(this).hide().css('display', 'none');
+                    $(this).hide().css('display', 'none !important');
                     $('#wssc-bulk-form')[0].reset();
                 }
             });
@@ -251,7 +251,7 @@ class WSSC_SideCart {
             // Close modal with Escape key
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape' && $('#wssc-bulk-modal').is(':visible')) {
-                    $('#wssc-bulk-modal').hide().css('display', 'none');
+                    $('#wssc-bulk-modal').hide().css('display', 'none !important');
                     $('#wssc-bulk-form')[0].reset();
                 }
             });
@@ -283,7 +283,7 @@ class WSSC_SideCart {
                     success: function(response) {
                         if (response.success) {
                             showToast('✅ ' + response.data.message, 'success');
-                            $('#wssc-bulk-modal').hide().css('display', 'none');
+                            $('#wssc-bulk-modal').hide().css('display', 'none !important');
                             $('#wssc-bulk-form')[0].reset();
                         } else {
                             showToast('❌ ' + response.data, 'error');

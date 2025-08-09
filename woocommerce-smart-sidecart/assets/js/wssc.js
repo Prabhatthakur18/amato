@@ -8,11 +8,17 @@ $(document).on('click', '.wssc-add-btn', function(e) {
     // Disable button and show loading
     button.prop('disabled', true).html('Adding...');
     
+    // Get mobile brand and model from the page if available
+    var mobileBrand = $('#mobile_brand').val() || '';
+    var mobileModel = $('#mobile_model').val() || '';
+    
     var ajaxData = {
         action: 'wssc_add_to_cart',
         product_id: productId,
         quantity: 1,
-        nonce: wsscAjax.nonce
+        nonce: wsscAjax.nonce,
+        mobile_brand: mobileBrand,
+        mobile_model: mobileModel
     };
     
     $.ajax({
