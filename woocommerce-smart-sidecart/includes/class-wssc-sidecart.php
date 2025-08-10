@@ -194,7 +194,7 @@ class WSSC_SideCart {
     public function add_bulk_modal() {
         ?>
         <!-- Bulk Buy Modal -->
-        <div id="wssc-bulk-modal" class="wssc-modal">
+        <div id="wssc-bulk-modal" class="wssc-modal" style="display: none;">
             <div class="wssc-box">
                 <h3>Request Bulk Purchase</h3>
                 <form id="wssc-bulk-form">
@@ -217,7 +217,7 @@ class WSSC_SideCart {
                     
                     <div style="margin-top: 15px;">
                         <button type="submit" class="button">Submit Request</button>
-                        <button type="button" class="button" id="wssc-cancel-bulk">Cancel</button>
+                        <button type="button" class="button wssc-cancel-bulk" id="wssc-cancel-bulk">Cancel</button>
                     </div>
                 </form>
             </div>
