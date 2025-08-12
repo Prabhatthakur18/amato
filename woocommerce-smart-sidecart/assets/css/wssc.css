@@ -1,5 +1,5 @@
-/* Modal Styling */
-.wssc-modal {
+/* Modal Styling - Frontend specific */
+#wssc-bulk-modal.wssc-modal {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -7,13 +7,19 @@
     height: 100% !important;
     background: rgba(0,0,0,0.7) !important;
     z-index: 10000 !important;
-    display: none !important;
-}
-
-.wssc-modal:not([style*="display: none"]) {
-    display: flex !important;
+    display: none !important; /* Ensure it starts hidden */
     align-items: center !important;
     justify-content: center !important;
+    opacity: 0 !important; /* Additional hidden state */
+    visibility: hidden !important; /* Additional hidden state */
+    pointer-events: none !important; /* Prevent interaction when hidden */
+}
+/* Only show when explicitly visible */
+#wssc-bulk-modal.wssc-modal.wssc-modal-show {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important; /* Re-enable interaction when visible */
 }
 
 

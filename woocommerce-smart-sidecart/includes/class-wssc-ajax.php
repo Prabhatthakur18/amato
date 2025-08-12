@@ -11,37 +11,64 @@ class WSSC_Ajax {
         add_action('wp_ajax_wssc_delete_request', [$this, 'delete_request']);
     }
 
-    public function save_request() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
-            wp_send_json_error('Invalid nonce');
-        }
+public function save_request() {
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'wssc_nonce')) {
+        wp_send_json_error('Invalid nonce');
+    }
 
-        // Validate required fields
-        if (empty($_POST['name']) || empty($_POST['phone'])) {
-            wp_send_json_error('Name and phone are required');
-        }
+    // Validate required fields
+    if (empty($_POST['name']) || empty($_POST['phone'])) {
+        wp_send_json_error('Name and phone are required');
+    }
 
-        global $wpdb;
-        $table = $wpdb->prefix . 'wssc_bulk_requests';
-        
-        $result = $wpdb->insert($table, [
-            'product_id' => intval($_POST['product_id']),
-            'name' => sanitize_text_field($_POST['name']),
-            'phone' => sanitize_text_field($_POST['phone']),
-            'email' => sanitize_email($_POST['email']),
-            'quantity' => intval($_POST['quantity']),
-            'message' => sanitize_textarea_field($_POST['message']),
-            'status' => 'pending',
-            'created_at' => current_time('mysql')
-        ]);
-
-        if ($result !== false) {
-            wp_send_json_success(['message' => 'Request Submitted Successfully!']);
-        } else {
-            wp_send_json_error('Failed to save request');
+    global $wpdb;
+    $table = $wpdb->prefix . 'wssc_bulk_requests';
+    
+    // Get all cart product IDs and mobile data
+    $cart_product_ids = [];
+    $mobile_brands = [];
+    $mobile_models = [];
+    
+    if (WC()->cart && !WC()->cart->is_empty()) {
+        foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+            $cart_product_ids[] = $cart_item['product_id'];
+            
+            // Collect mobile data from cart items
+            if (!empty($cart_item['mobile_brand'])) {
+                $mobile_brands[] = $cart_item['mobile_brand'];
+            }
+            if (!empty($cart_item['mobile_model'])) {
+                $mobile_models[] = $cart_item['mobile_model'];
+            }
         }
     }
+    
+    // Prepare data for database
+    $product_ids_json = !empty($cart_product_ids) ? json_encode($cart_product_ids) : null;
+    $mobile_brand = !empty($mobile_brands) ? implode(', ', array_unique($mobile_brands)) : '';
+    $mobile_model = !empty($mobile_models) ? implode(', ', array_unique($mobile_models)) : '';
+    
+    $result = $wpdb->insert($table, [
+        'product_id' => intval($_POST['product_id']), // Keep the main product ID
+        'product_ids' => $product_ids_json, // Store all cart product IDs
+        'mobile_brand' => sanitize_text_field($mobile_brand),
+        'mobile_model' => sanitize_text_field($mobile_model),
+        'name' => sanitize_text_field($_POST['name']),
+        'phone' => sanitize_text_field($_POST['phone']),
+        'email' => sanitize_email($_POST['email']),
+        'quantity' => intval($_POST['quantity']),
+        'message' => sanitize_textarea_field($_POST['message']),
+        'status' => 'pending',
+        'created_at' => current_time('mysql')
+    ]);
+
+    if ($result !== false) {
+        wp_send_json_success(['message' => 'Request Submitted Successfully!']);
+    } else {
+        wp_send_json_error('Failed to save request');
+    }
+}
 
    public function add_to_cart() {
     // Verify nonce

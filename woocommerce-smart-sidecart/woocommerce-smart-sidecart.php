@@ -50,17 +50,36 @@ class WSSC_Plugin {
         new WSSC_Mobile_Admin();
     }
     
-    public function activate() {
-        // Create database tables
-        WSSC_DB::create_table();
-        
-        // Create mobile selector tables
-        $mobile_selector = new WSSC_Mobile_Selector();
-        $mobile_selector->create_tables();
-        
-        // Flush rewrite rules
-        flush_rewrite_rules();
+  // Add this to the activate method in WSSC_Plugin class
+public function activate() {
+    // Create database tables
+    WSSC_DB::create_table();
+    
+    // Create mobile selector tables
+    $mobile_selector = new WSSC_Mobile_Selector();
+    $mobile_selector->create_tables();
+    
+    // Update plugin version
+    $current_version = get_option('wssc_plugin_version', '1.0.0');
+    if (version_compare($current_version, '1.0.3', '<')) {
+        $this->upgrade_database();
+        update_option('wssc_plugin_version', '1.0.3');
     }
+    
+    // Flush rewrite rules
+    flush_rewrite_rules();
+}
+
+private function upgrade_database() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'wssc_bulk_requests';
+    
+    // Add cart_products column if it doesn't exist
+    $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table LIKE 'cart_products'");
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table ADD COLUMN cart_products TEXT AFTER product_id");
+    }
+}
     
     public function woocommerce_missing_notice() {
         echo '<div class="notice notice-error"><p>';

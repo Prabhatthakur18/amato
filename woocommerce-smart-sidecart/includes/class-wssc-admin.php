@@ -120,88 +120,126 @@ class WSSC_Admin {
         exit;
     }
 
-    public function requests_page() {
-        global $wpdb;
-        $table = $wpdb->prefix . 'wssc_bulk_requests';
-        $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC");
-        ?>
-        <div class="wrap">
-            <h1>📋 Bulk Purchase Requests</h1>
-            <p class="description">Manage bulk purchase requests submitted by customers through the side cart.</p>
-            
-            <?php if (empty($results)): ?>
-                <div class="no-requests">
-                    <p>No bulk requests found.</p>
-                </div>
-            <?php else: ?>
-                <table class="widefat fixed striped wssc-requests-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">ID</th>
-                            <th>Product</th>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Email</th>
-                            <th style="width: 80px;">Qty</th>
-                            <th>Message</th>
-                            <th style="width: 100px;">Status</th>
-                            <th style="width: 120px;">Date</th>
-                            <th style="width: 100px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($results as $row):
-                            $product = wc_get_product($row->product_id);
-                            $status_class = 'status-' . $row->status; ?>
-                            <tr data-id="<?php echo $row->id; ?>">
-                                <td><?php echo esc_html($row->id); ?></td>
-                                <td><?php echo $product ? esc_html($product->get_name()) : '<em>Deleted Product</em>'; ?></td>
-                                <td><?php echo esc_html($row->name); ?></td>
-                                <td><?php echo esc_html($row->phone); ?></td>
-                                <td><?php echo esc_html($row->email ?: 'Not provided'); ?></td>
-                                <td><?php echo esc_html($row->quantity); ?></td>
-                                <td><?php echo esc_html($row->message ?: 'No message'); ?></td>
-                                <td>
-                                    <span class="status-badge <?php echo $status_class; ?>">
-                                        <?php echo ucfirst(esc_html($row->status)); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo esc_html(date('M j, Y g:i A', strtotime($row->created_at))); ?></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="edit-status-btn" data-id="<?php echo $row->id; ?>" title="Edit Status">
-                                            ✏️
-                                        </button>
-                                        <button class="delete-request-btn" data-id="<?php echo $row->id; ?>" title="Delete Request">
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
-        </div>
-
-        <!-- Status Edit Modal -->
-        <div id="status-edit-modal" class="wssc-modal" style="display: none;">
-            <div class="wssc-box">
-                <h3>Update Status</h3>
-                <form id="status-edit-form">
-                    <input type="hidden" id="edit-request-id" name="request_id">
-                    <label for="status-select">Select Status:</label>
-                    <select id="status-select" name="status" required>
-                        <option value="pending">Pending</option>
-                        <option value="done">Done</option>
-                    </select>
-                    <div style="margin-top: 15px;">
-                        <button type="submit" class="button button-primary">Update Status</button>
-                        <button type="button" class="button cancel-edit">Cancel</button>
-                    </div>
-                </form>
+public function requests_page() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'wssc_bulk_requests';
+    $results = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC");
+    ?>
+    <div class="wrap">
+        <h1>📋 Bulk Purchase Requests</h1>
+        <p class="description">Manage bulk purchase requests submitted by customers through the side cart.</p>
+        
+        <?php if (empty($results)): ?>
+            <div class="no-requests">
+                <p>No bulk requests found.</p>
             </div>
+        <?php else: ?>
+            <table class="widefat fixed striped wssc-requests-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th>Products</th>
+                        <th>Mobile Info</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th style="width: 80px;">Qty</th>
+                        <th>Message</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 120px;">Date</th>
+                        <th style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($results as $row):
+                        $status_class = 'status-' . $row->status;
+                        
+                        // Get products information
+                        $products_info = '';
+                        if (!empty($row->product_ids)) {
+                            $product_ids = json_decode($row->product_ids, true);
+                            if (is_array($product_ids)) {
+                                $product_names = [];
+                                foreach ($product_ids as $pid) {
+                                    $product = wc_get_product($pid);
+                                    if ($product) {
+                                        $product_names[] = $product->get_name();
+                                    } else {
+                                        $product_names[] = "Product ID: $pid (Deleted)";
+                                    }
+                                }
+                                $products_info = implode('<br>', $product_names);
+                            }
+                        } else {
+                            // Fallback to single product
+                            $product = wc_get_product($row->product_id);
+                            $products_info = $product ? $product->get_name() : "Product ID: {$row->product_id} (Deleted)";
+                        }
+                        
+                        // Mobile info
+                        $mobile_info = '';
+                        if (!empty($row->mobile_brand) || !empty($row->mobile_model)) {
+                            $mobile_info = '';
+                            if (!empty($row->mobile_brand)) {
+                                $mobile_info .= '<strong>Brand:</strong> ' . esc_html($row->mobile_brand) . '<br>';
+                            }
+                            if (!empty($row->mobile_model)) {
+                                $mobile_info .= '<strong>Model:</strong> ' . esc_html($row->mobile_model);
+                            }
+                        } else {
+                            $mobile_info = '<em>No mobile selected</em>';
+                        }
+                    ?>
+                        <tr data-id="<?php echo $row->id; ?>">
+                            <td><?php echo esc_html($row->id); ?></td>
+                            <td><?php echo $products_info; ?></td>
+                            <td><?php echo $mobile_info; ?></td>
+                            <td><?php echo esc_html($row->name); ?></td>
+                            <td><?php echo esc_html($row->phone); ?></td>
+                            <td><?php echo esc_html($row->email ?: 'Not provided'); ?></td>
+                            <td><?php echo esc_html($row->quantity); ?></td>
+                            <td><?php echo esc_html($row->message ?: 'No message'); ?></td>
+                            <td>
+                                <span class="status-badge <?php echo $status_class; ?>">
+                                    <?php echo ucfirst(esc_html($row->status)); ?>
+                                </span>
+                            </td>
+                            <td><?php echo esc_html(date('M j, Y g:i A', strtotime($row->created_at))); ?></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="edit-status-btn" data-id="<?php echo $row->id; ?>" title="Edit Status">
+                                        ✏️
+                                    </button>
+                                    <button class="delete-request-btn" data-id="<?php echo $row->id; ?>" title="Delete Request">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+
+    <!-- Status Edit Modal -->
+    <div id="status-edit-modal" class="wssc-modal" style="display: none;">
+        <div class="wssc-box">
+            <h3>Update Status</h3>
+            <form id="status-edit-form">
+                <input type="hidden" id="edit-request-id" name="request_id">
+                <label for="status-select">Select Status:</label>
+                <select id="status-select" name="status" required>
+                    <option value="pending">Pending</option>
+                    <option value="done">Done</option>
+                </select>
+                <div style="margin-top: 15px;">
+                    <button type="submit" class="button button-primary">Update Status</button>
+                    <button type="button" class="button cancel-edit">Cancel</button>
+                </div>
+            </form>
         </div>
-        <?php
-    }
+    </div>
+    <?php
+}
 }

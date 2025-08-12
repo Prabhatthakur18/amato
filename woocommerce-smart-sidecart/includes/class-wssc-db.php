@@ -9,6 +9,9 @@ class WSSC_DB {
         $sql = "CREATE TABLE $table (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             product_id BIGINT NOT NULL,
+            product_ids TEXT,
+            mobile_brand VARCHAR(255),
+            mobile_model VARCHAR(255),
             name VARCHAR(255),
             phone VARCHAR(50),
             email VARCHAR(255),
@@ -20,8 +23,11 @@ class WSSC_DB {
         require_once ABSPATH.'wp-admin/includes/upgrade.php';
         dbDelta($sql);
         
-        // Add email and status columns if they don't exist (for existing installations)
+        // Add new columns if they don't exist (for existing installations)
         $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS email VARCHAR(255) AFTER phone");
         $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending' AFTER message");
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS product_ids TEXT AFTER product_id");
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS mobile_brand VARCHAR(255) AFTER product_ids");
+        $wpdb->query("ALTER TABLE $table ADD COLUMN IF NOT EXISTS mobile_model VARCHAR(255) AFTER mobile_brand");
     }
 }
